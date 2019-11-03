@@ -29,6 +29,7 @@ body {
   background: var(--primaryColor);
   color: var(--mainWhite);
   display: inline-block;
+  margin-top: 2rem;
   text-transform: uppercase;
   letter-spacing: var(--mainSpacing);
   outline: 2px solid var(--primaryColor);
