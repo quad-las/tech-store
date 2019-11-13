@@ -74,7 +74,7 @@ class ProductProvider extends Component {
       cartItems += item.count;
     });
     subTotal = parseFloat(subTotal.toFixed(2));
-    let tax = subTotal * 0.5;
+    let tax = subTotal * 0.05;
     tax = parseFloat(tax.toFixed(2));
     let total = subTotal + tax;
     total = parseFloat(total.toFixed(2));
@@ -155,6 +155,75 @@ class ProductProvider extends Component {
     this.setState({ cartOpen: false });
   };
 
+  // cart page functionalities
+  increment = id => {
+    let tempCart = [...this.state.cart];
+    const cartItem = tempCart.find(item => item.id === id);
+    cartItem.count++;
+    cartItem.total = cartItem.count * cartItem.price;
+    cartItem.total = parseFloat(cartItem.total.toFixed(2));
+    this.setState(
+      () => {
+        return {
+          cart: [...tempCart],
+        };
+      },
+      () => {
+        this.addTotals();
+        this.syncStorage();
+      },
+    );
+  };
+
+  decrement = id => {
+    let tempCart = [...this.state.cart];
+    const cartItem = tempCart.find(item => item.id === id);
+    cartItem.count--;
+    if (cartItem.count === 0) {
+      this.removeItem(id);
+    } else {
+      cartItem.total = cartItem.count * cartItem.price;
+      cartItem.total = parseFloat(cartItem.total.toFixed(2));
+    }
+    this.setState(
+      () => {
+        return {
+          cart: [...tempCart],
+        };
+      },
+      () => {
+        this.addTotals();
+        this.syncStorage();
+      },
+    );
+  };
+
+  removeItem = id => {
+    let tempCart = [...this.state.cart];
+    tempCart = tempCart.filter(item => item.id !== id);
+    this.setState(
+      {
+        cart: [...tempCart],
+      },
+      () => {
+        this.addTotals();
+        this.syncStorage();
+      },
+    );
+  };
+
+  clearCart = () => {
+    this.setState(
+      {
+        cart: [],
+      },
+      () => {
+        this.addTotals();
+        this.syncStorage();
+      },
+    );
+  };
+
   render() {
     return (
       <ProductContext.Provider
@@ -166,6 +235,10 @@ class ProductProvider extends Component {
           openCart: this.openCart,
           addToCart: this.addToCart,
           setSingleProduct: this.setSingleProduct,
+          increment: this.increment,
+          decrement: this.decrement,
+          removeItem: this.removeItem,
+          clearCart: this.clearCart,
         }}
       >
         {this.props.children}
