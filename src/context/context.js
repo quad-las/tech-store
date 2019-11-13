@@ -1,17 +1,17 @@
 import React, { Component } from "react";
 import { linkData } from "./linkData";
-import { socialData } from "./sociaData";
+import { socialData } from "./socialData";
 import { items } from "./productData";
-const ProductContext = React.createContext();
 
+const ProductContext = React.createContext();
 class ProductProvider extends Component {
   state = {
     sidebarOpen: false,
     cartOpen: false,
-    cartItems: 0,
     links: linkData,
     socialLinks: socialData,
     cart: [],
+    cartItems: 0,
     cartSubTotal: 0,
     cartTax: 0,
     cartTotal: 0,
@@ -35,27 +35,71 @@ class ProductProvider extends Component {
     });
 
     let featuredProducts = storeProducts.filter(item => item.featured === true);
-    this.setState({
-      storeProducts,
-      featuredProducts,
-      filteredProducts: storeProducts,
-      cart: this.getStorageCart(),
-      singleProduct: this.getStorageProduct(),
-      loading: false,
-    });
+    this.setState(
+      {
+        storeProducts,
+        featuredProducts,
+        filteredProducts: storeProducts,
+        cart: this.getStorageCart(),
+        singleProduct: this.getStorageProduct(),
+        loading: false,
+      },
+      () => {
+        this.addTotals();
+      },
+    );
   };
 
   getStorageCart = () => {
-    return [];
+    let cart;
+    if (localStorage.getItem("cart")) {
+      cart = JSON.parse(localStorage.getItem("cart"));
+    } else {
+      cart = [];
+    }
+    return cart;
   };
 
   getStorageProduct = () => {
-    return [];
+    return localStorage.getItem("singleProduct")
+      ? JSON.parse(localStorage.getItem("singleProduct"))
+      : {};
   };
 
-  getTotals = () => {};
-  addTotals = () => {};
-  syncStorage = () => {};
+  getTotals = () => {
+    let subTotal = 0;
+    let cartItems = 0;
+    this.state.cart.forEach(item => {
+      subTotal += item.total;
+      cartItems += item.count;
+    });
+    subTotal = parseFloat(subTotal.toFixed(2));
+    let tax = subTotal * 0.5;
+    tax = parseFloat(tax.toFixed(2));
+    let total = subTotal + tax;
+    total = parseFloat(total.toFixed(2));
+    return {
+      cartItems,
+      subTotal,
+      tax,
+      total,
+    };
+  };
+
+  addTotals = () => {
+    const totals = this.getTotals();
+    this.setState({
+      cartItems: totals.cartItems,
+      cartSubTotal: totals.subTotal,
+      cartTax: totals.tax,
+      cartTotal: totals.total,
+    });
+  };
+
+  syncStorage = () => {
+    localStorage.setItem("cart", JSON.stringify(this.state.cart));
+  };
+
   addToCart = id => {
     let tempCart = [...this.state.cart];
     let tempProducts = [...this.state.storeProducts];
@@ -77,12 +121,19 @@ class ProductProvider extends Component {
       () => {
         this.addTotals();
         this.syncStorage();
-        this.openCart();
+        // this.openCart();
       },
     );
   };
-  setSingleProduct = id => {};
-  getTotals = () => {};
+
+  setSingleProduct = id => {
+    let product = this.state.storeProducts.find(item => item.id === id);
+    localStorage.setItem("singleProduct", JSON.stringify(product));
+    this.setState({
+      singleProduct: { ...product },
+      loading: false,
+    });
+  };
 
   handleSidebar = () => {
     this.setState({
