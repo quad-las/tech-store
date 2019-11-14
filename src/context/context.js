@@ -184,18 +184,18 @@ class ProductProvider extends Component {
     } else {
       cartItem.total = cartItem.count * cartItem.price;
       cartItem.total = parseFloat(cartItem.total.toFixed(2));
+      this.setState(
+        () => {
+          return {
+            cart: [...tempCart],
+          };
+        },
+        () => {
+          this.addTotals();
+          this.syncStorage();
+        },
+      );
     }
-    this.setState(
-      () => {
-        return {
-          cart: [...tempCart],
-        };
-      },
-      () => {
-        this.addTotals();
-        this.syncStorage();
-      },
-    );
   };
 
   removeItem = id => {
